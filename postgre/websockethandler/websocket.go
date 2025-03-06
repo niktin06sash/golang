@@ -32,12 +32,12 @@ func (upgrader *MyUpgrader) Upgrade(w http.ResponseWriter, r *http.Request, resp
 	return upgrader.vc.Upgrade(w, r, responseHeader)
 }
 func (upgrader *MyUpgrader) HandleWebSocketOnline(conn *websocket.Conn, userID int, ps *database.PersonRepository, ctx context.Context) {
-	// Добавляем ping/pong механизм
+
 	conn.SetPingHandler(func(data string) error {
 		return conn.WriteControl(websocket.PongMessage, []byte(data), time.Now().Add(time.Second))
 	})
 
-	// Устанавливаем таймауты
+
 	conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 	conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 
@@ -46,11 +46,11 @@ func (upgrader *MyUpgrader) HandleWebSocketOnline(conn *websocket.Conn, userID i
 		ps.UpdateOnline(userID, false, ctx)
 	}()
 
-	// Создаем отдельные каналы для чтения/записи
+
 	done := make(chan struct{})
 	errChan := make(chan error)
 
-	// Горутина для чтения сообщений
+
 	go func() {
 		defer close(done)
 		for {
@@ -83,7 +83,7 @@ func (upgrader *MyUpgrader) HandleWebSocketOnline(conn *websocket.Conn, userID i
 			log.Printf("WebSocket error for user %d: %v", userID, err)
 			return
 		case <-ctx.Done():
-			// Graceful shutdown
+
 			err := conn.WriteMessage(websocket.CloseMessage,
 				websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {
@@ -91,7 +91,6 @@ func (upgrader *MyUpgrader) HandleWebSocketOnline(conn *websocket.Conn, userID i
 			}
 			return
 		case <-ticker.C:
-			// Периодическое обновление статуса
 			if err := ps.UpdateLastEntered(userID, time.Now(), "", ctx); err != nil {
 				log.Printf("Error updating last entered: %v", err)
 			}
