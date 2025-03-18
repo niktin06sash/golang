@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title> {{ .Title }}</title>
+    </head>
+    <body>
+        <h1 style="text-align: center;">{{ .Title }}</h1>
+        <p style="font-size: 30px; font-family: Arial, sans-serif;"> {{ .ChoiceCountry }} </p> 
+        <style>
+             
+        #myList {
+            width: 200px; /* Задаем ширину списка */
+            height: 150px; /* Задаем высоту списка */
+            overflow-y: scroll; /* Включаем вертикальную полосу прокрутки */
+            border: 1px solid #ccc; /* Добавляем рамку для визуального оформления */
+        }
+
+        #myList a {
+            display: block; /* Занимать всю ширину */
+            padding: 5px;
+            text-decoration: none; /* Убираем подчеркивание */
+            color: #333;
+        }
+
+        #myList a:hover {
+            background-color: #f0f0f0; /* Цвет фона при наведении */
+        }
+        </style>
+        <div id="myList">
+           {{ range .ListCountry }}
+           <a href="#"> {{ .Name }} </a>
+          {{ end }}
+        </div>
+        {{ range .DataFromResponse }}
+        <p> {{ . }}</p>
+        {{ end }}
+    </body>
+</html>
