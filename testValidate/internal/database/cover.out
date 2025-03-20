@@ -1,0 +1,22 @@
+mode: set
+testValidate/internal/database/db.go:10.48,14.2 1 1
+testValidate/internal/database/db.go:15.41,19.17 2 1
+testValidate/internal/database/db.go:19.17,21.3 1 1
+testValidate/internal/database/db.go:22.2,22.19 1 1
+testValidate/internal/database/db.go:24.37,26.16 2 1
+testValidate/internal/database/db.go:26.16,28.3 1 1
+testValidate/internal/database/db.go:29.2,30.16 2 1
+testValidate/internal/database/db.go:30.16,32.3 1 1
+testValidate/internal/database/db.go:33.2,34.16 2 1
+testValidate/internal/database/db.go:34.16,36.3 1 1
+testValidate/internal/database/db.go:37.2,42.16 4 1
+testValidate/internal/database/db.go:42.16,44.3 1 0
+testValidate/internal/database/db.go:45.2,45.34 1 1
+testValidate/internal/database/db.go:45.34,48.3 2 1
+testValidate/internal/database/db.go:49.2,49.16 1 1
+testValidate/internal/database/repository.go:18.86,21.16 2 0
+testValidate/internal/database/repository.go:21.16,23.3 1 0
+testValidate/internal/database/repository.go:24.2,24.12 1 0
+testValidate/internal/database/repository.go:26.72,29.16 2 0
+testValidate/internal/database/repository.go:29.16,31.3 1 0
+testValidate/internal/database/repository.go:32.2,32.18 1 0
