@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Page</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .profile-button {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 12;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 10;
+        }
+
+        .profile-dialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 11;
+            display: none;
+            text-align: left;
+        }
+
+        .settings-dialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 11;
+            display: none;
+            text-align: center;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #888;
+        }
+
+        .settings-button {
+            display: block;
+            margin: 10px auto 0;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            width: fit-content;
+            min-width: 100px;
+        }
+
+        .settings-dialog button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+
+        .settings-dialog button.logout-button {
+            background-color: #007bff;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Profile Button -->
+    <button class="profile-button">Профиль</button>
+
+    <!-- Overlay -->
+    <div class="overlay"></div>
+
+    <!-- Profile Dialog -->
+    <div class="profile-dialog">
+        <button class="close-button profile-close-button">×</button>
+        <h2>Профиль</h2>
+        <p><strong>Имя:</strong> <span id="profile-name">John Doe</span></p>
+        <p><strong>Адрес электронной почты:</strong> <span id="profile-email">john.doe@example.com</span></p>
+        <button class="settings-button">Настройки</button>
+
+    </div>
+
+    <!-- Settings Dialog (Initially Hidden) -->
+    <div class="settings-dialog">
+        <button class="close-button settings-close-button">×</button>
+        <h2>Настройки</h2>
+        <button class="delete-account-button">Удалить аккаунт</button>
+        <button class="logout-button">Выйти</button>
+    </div>
+
+    <script>
+        const profileButton = document.querySelector('.profile-button');
+        const overlay = document.querySelector('.overlay');
+        const profileDialog = document.querySelector('.profile-dialog');
+        const settingsDialog = document.querySelector('.settings-dialog');
+        const profileCloseButton = document.querySelector('.profile-close-button');
+        const settingsCloseButton = document.querySelector('.settings-close-button');
+        const deleteAccountButton = document.querySelector('.delete-account-button');
+        const logoutButton = document.querySelector('.logout-button');
+        const profileNameSpan = document.getElementById('profile-name');
+        const profileEmailSpan = document.getElementById('profile-email');
+        const settingsButton = document.querySelector('.settings-button');
+
+        // Предполагаемый путь к серверу для выхода (замените на реальный путь)
+        const logoutEndpoint = '/logout';
+
+        function openDialog(dialog) {
+            dialog.style.display = 'block';
+            overlay.style.display = 'block';
+        }
+
+        function closeDialog(dialogToClose, dialogToOpen) {
+            dialogToClose.style.display = 'none'; // Hide the dialog to close
+            if (dialogToOpen) {
+                openDialog(dialogToOpen); // Show the dialog to open using openDialog function
+            } else {
+                overlay.style.display = 'none'; // If no dialog to open, hide the overlay
+            }
+
+        }
+
+        profileButton.addEventListener('click', () => {
+            profileNameSpan.textContent = "Jane Smith";
+            profileEmailSpan.textContent = "jane.smith@example.com";
+            openDialog(profileDialog);
+        });
+
+        profileCloseButton.addEventListener('click', () => {
+            closeDialog(profileDialog); // Закрываем только окно профиля
+        });
+
+        settingsCloseButton.addEventListener('click', () => {
+            closeDialog(settingsDialog, profileDialog); // Закрываем окно настроек и открываем окно профиля
+        });
+
+        overlay.addEventListener('click', () => {
+            // Закрываем оба окна, если они открыты
+            closeDialog(profileDialog);
+            closeDialog(settingsDialog);
+        });
+
+        settingsButton.addEventListener('click', () => {
+            profileDialog.style.display = 'none';
+            openDialog(settingsDialog);
+        });
+
+        // Event listeners for the settings dialog buttons
+        deleteAccountButton.addEventListener('click', () => {
+            alert("Delete account clicked!");
+        });
+
+        logoutButton.addEventListener('click', () => {
+    fetch(logoutEndpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            //'X-CSRF-Token': 'ваш_csrf_токен' // Если используете CSRF
+        },
+    })
+    .then(response => {
+        if (response.ok) {
+            // Удаляем cookie, устанавливая Expires в прошлое и сохраняя остальные параметры
+            document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=strict";
+            alert("Вы успешно вышли из аккаунта!")
+            window.location.href = "/";
+            
+        } else {
+            console.error('Ошибка при выходе:', response.status);
+            alert('Ошибка при выходе. Попробуйте еще раз.');
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка сети:', error);
+        alert('Ошибка сети при выходе. Попробуйте еще раз.');
+    });
+});
+    </script>
+</body>
+
+</html>
