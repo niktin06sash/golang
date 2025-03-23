@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Greeting Page</title>
     <style>
-         body {
+        body {
             font-family: sans-serif;
             background-color: #f4f4f4;
             margin: 0;
@@ -26,15 +26,44 @@
 <body>
 <div class="greeting-container">
     <h1>Здравствуйте!</h1>
+    <p id="greeting-message">Загрузка...</p>
+    <p id="redirecting-message"></p>
 </div>
 
 <script>
-    const delay = 5000;
-    function redirectToMain() {
-        window.location.href = "/profile";
-    }
+    document.addEventListener("DOMContentLoaded", function() {
+        const greetingMessageElement = document.getElementById("greeting-message");
+        const redirectingMessageElement = document.getElementById("redirecting-message");
 
-    setTimeout(redirectToMain, delay);
+        
+            fetch('/api/greeting', { // Защищенный endpoint
+                method: "GET",
+            })
+            .then(response => {
+                if (!response.ok) {
+                    console.error("API Error:", response.status);
+                    window.location.href = "/"; // Back To Login
+                    return new Promise(() => {}); // Prevent further execution
+                }
+                return response.json();
+            })
+            .then(data => {
+                const delay = 5000;
+
+                
+                redirectingMessageElement.textContent = `Перенаправление на страницу профиля через ${delay/1000} секунд...`;
+
+                function redirectToMain() {
+                    window.location.href = "/profile";
+                }
+
+                setTimeout(redirectToMain, delay);
+            })
+            .catch(error => {
+                console.error("API Error:", error);
+                localStorage.removeItem('access_token');
+                window.location.href = "/";
+            });
+    });
 </script>
 </body>
-</html>

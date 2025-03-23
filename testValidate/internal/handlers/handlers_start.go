@@ -58,7 +58,7 @@ func handleAuth(w http.ResponseWriter, r *http.Request, authFunc func(*person.Pe
 		})
 		return
 	}
-	tokenString, err := auth.GenerateJWT(authresponse.UserId.String())
+	sessionID, err := auth.CreateSession(authresponse.UserId)
 	if err != nil {
 		w.Header().Set("Content-Type", contentTypeJSON)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -67,14 +67,16 @@ func handleAuth(w http.ResponseWriter, r *http.Request, authFunc func(*person.Pe
 		})
 		return
 	}
-	http.SetCookie(w, &http.Cookie{
-		Name:     "token",
-		Value:    tokenString,
+	sessionCookie := &http.Cookie{
+		Name:     "session_id",
+		Value:    sessionID,
 		Path:     "/",
 		HttpOnly: true,
+		//Secure:   true,
 		SameSite: http.SameSiteStrictMode,
-		Expires:  time.Now().Add(24 * time.Hour),
-	})
+		Expires:  time.Now().Add(time.Hour * 24),
+	}
+	http.SetCookie(w, sessionCookie)
 	w.Header().Set("Content-Type", contentTypeJSON)
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{

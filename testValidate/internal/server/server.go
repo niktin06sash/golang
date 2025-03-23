@@ -88,20 +88,20 @@ func NewServer(cfg *config.Config, db *sql.DB) *Server {
 
 func (server *Server) Handlers() http.Handler {
 	mu := mux.NewRouter()
-	mu.HandleFunc("/reg", auth.NonAuthorityMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { handlers.Registration(w, r, server.PersonService) })).ServeHTTP).Methods("POST")
-	mu.HandleFunc("/auth", auth.NonAuthorityMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { handlers.Authentication(w, r, server.PersonService) })).ServeHTTP).Methods("POST")
-	mu.HandleFunc("/logout", auth.AuthorityMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		handlers.LogoutHandler(w, r)
-	})).ServeHTTP).Methods("POST")
-	mu.HandleFunc("/", auth.NonAuthorityMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		handlers.MainPage(w, r, server.MapaHtml["startpage"])
-	})).ServeHTTP).Methods("GET")
-	mu.HandleFunc("/profile", auth.AuthorityMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mu.HandleFunc("/reg", (http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { handlers.Registration(w, r, server.PersonService) })).ServeHTTP).Methods("POST")
+	mu.HandleFunc("/auth", (http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { handlers.Authentication(w, r, server.PersonService) })).ServeHTTP).Methods("POST")
+	mu.HandleFunc("/profile", (http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		handlers.PersonPage(w, r, server.MapaHtml["personpage"])
 	})).ServeHTTP).Methods("GET")
-	mu.HandleFunc("/greeting", auth.AuthorityMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mu.HandleFunc("/greeting", func(w http.ResponseWriter, r *http.Request) {
 		handlers.GreetingPage(w, r, server.MapaHtml["greetingpage"])
+	}).Methods("GET")
+	mu.HandleFunc("/", auth.NoAuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handlers.MainPage(w, r, server.MapaHtml["startpage"])
 	})).ServeHTTP).Methods("GET")
+	mu.Handle("/api/greeting", auth.AuthorityMiddleware(http.HandlerFunc(handlers.ProtectGreetingPage)))
+	mu.Handle("/api/profile", auth.AuthorityMiddleware(http.HandlerFunc(handlers.ProtectPersonPage)))
+	mu.Handle("/api/logout", auth.AuthorityMiddleware(http.HandlerFunc(handlers.LogoutHandler)))
 	return mu
 }
 func (server *Server) Run(ctx context.Context) error {

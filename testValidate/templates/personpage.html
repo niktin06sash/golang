@@ -105,10 +105,59 @@
         .settings-dialog button.logout-button {
             background-color: #007bff;
         }
+
+         /* Delete Account Dialog Styles */
+        .delete-account-dialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 11;
+            display: none;
+            text-align: center;
+            min-width: 300px;
+        }
+
+        .delete-account-dialog .delete-account-dialog-content {
+            padding: 20px;
+        }
+         #confirm-delete-account-button {
+            background-color: #28a745; /* Зеленый цвет */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+
+        #confirm-delete-account-button:hover {
+            background-color: #1e7e34; /* Более темный зеленый при наведении */
+        }
+
+        #cancel-delete-account-button {
+            background-color: #dc3545; /* Красный цвет */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+
+        #cancel-delete-account-button:hover {
+            background-color: #c82333; /* Более темный красный при наведении */
+        }
     </style>
 </head>
 
-<body>
+<body onload="checkAccessToken()">
     <!-- Profile Button -->
     <button class="profile-button">Профиль</button>
 
@@ -133,7 +182,53 @@
         <button class="logout-button">Выйти</button>
     </div>
 
+    <!-- Delete Account Dialog (Initially Hidden) -->
+    <div class="delete-account-dialog" style="display: none;">
+        <div class="delete-account-dialog-content">
+            <h3>Подтвердите удаление аккаунта</h3>
+            <p>Пожалуйста, введите ваш текущий пароль для подтверждения:</p>
+            <input type="password" id="delete-account-password" placeholder="Пароль">
+            <button id="confirm-delete-account-button">Подтвердить удаление</button>
+            <button id="cancel-delete-account-button">Отмена</button>
+        </div>
+    </div>
+
     <script>
+         
+              function checkAccessToken() {
+          
+
+       
+                // Пользователь аутентифицирован
+                fetch('/api/profile', { // Защищенный endpoint
+                    method: "GET",
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        console.error("API Error:", response.status);
+                      
+                        window.location.href = "/"; // Back To Login
+                        return new Promise(() => {}); // Prevent further execution
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Обработка данных профиля
+                    console.log("Profile data:", data);
+                    // Отображаем данные профиля
+                  
+                })
+                .catch(error => {
+                    console.error("Fetch error:", error);
+                  
+                    window.location.href = "/";
+                });
+
+        
+        // -----------------------------------------------------
+        // Код для управления диалогами и кнопками (не зависит от аутентификации)
+        // -----------------------------------------------------
+
         const profileButton = document.querySelector('.profile-button');
         const overlay = document.querySelector('.overlay');
         const profileDialog = document.querySelector('.profile-dialog');
@@ -145,80 +240,147 @@
         const profileNameSpan = document.getElementById('profile-name');
         const profileEmailSpan = document.getElementById('profile-email');
         const settingsButton = document.querySelector('.settings-button');
+        const deleteAccountDialog = document.querySelector('.delete-account-dialog');
+        const confirmDeleteAccountButton = document.getElementById('confirm-delete-account-button');
+        const cancelDeleteAccountButton = document.getElementById('cancel-delete-account-button');
+         const deleteAccountPasswordInput = document.getElementById('delete-account-password');
 
-        // Предполагаемый путь к серверу для выхода (замените на реальный путь)
-        const logoutEndpoint = '/logout';
+          const logoutEndpoint = '/logout';
+
 
         function openDialog(dialog) {
             dialog.style.display = 'block';
             overlay.style.display = 'block';
         }
 
-        function closeDialog(dialogToClose, dialogToOpen) {
-            dialogToClose.style.display = 'none'; // Hide the dialog to close
-            if (dialogToOpen) {
-                openDialog(dialogToOpen); // Show the dialog to open using openDialog function
-            } else {
-                overlay.style.display = 'none'; // If no dialog to open, hide the overlay
-            }
+        function closeDialog(dialogToClose) {
+            dialogToClose.style.display = 'none';
+            overlay.style.display = 'none';
 
         }
+  async function deleteAccount(password) {
+    const deleteAccountEndpoint = '/api/delete-account';
+    const accessToken = localStorage.getItem('access_token');
 
-        profileButton.addEventListener('click', () => {
-            profileNameSpan.textContent = "Jane Smith";
-            profileEmailSpan.textContent = "jane.smith@example.com";
-            openDialog(profileDialog);
+    if (!password) {
+        alert("Пожалуйста, введите пароль.");
+        return;
+    }
+
+    try {
+        const response = await fetch(deleteAccountEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({ password: password }),
         });
 
-        profileCloseButton.addEventListener('click', () => {
-            closeDialog(profileDialog); // Закрываем только окно профиля
-        });
+        if (response.ok) {
+            alert("Аккаунт успешно удален!");
+            localStorage.removeItem('access_token');
+            window.location.href = "/";
+        } else {
+            console.error('Failed to delete account:', response.status);
+            alert('Не удалось удалить аккаунт. Пожалуйста, попробуйте еще раз.');
+        }
+    } catch (error) {
+        console.error('Error deleting account:', error);
+        alert('Ошибка сети при удалении аккаунта. Пожалуйста, попробуйте еще раз.');
+    }
+}
+        // Event listeners
+        if (profileButton) {
+            profileButton.addEventListener('click', () => {
+                openDialog(profileDialog);
+                overlay.style.display = 'block';
+            });
+        }
 
-        settingsCloseButton.addEventListener('click', () => {
-            closeDialog(settingsDialog, profileDialog); // Закрываем окно настроек и открываем окно профиля
-        });
+        if (settingsButton) {
+            settingsButton.addEventListener('click', () => {
+                closeDialog(profileDialog);
+                openDialog(settingsDialog);
+                overlay.style.display = 'block';
 
+            });
+        }
+
+        if (profileCloseButton) {
+            profileCloseButton.addEventListener('click', () => {
+                closeDialog(profileDialog);
+                overlay.style.display = 'none';
+            });
+        }
+
+        if (settingsCloseButton) {
+            settingsCloseButton.addEventListener('click', () => {
+                closeDialog(settingsDialog);
+                openDialog(profileDialog);
+                overlay.style.display = 'block';
+            });
+        }
+
+        if (overlay) {
         overlay.addEventListener('click', () => {
-            // Закрываем оба окна, если они открыты
             closeDialog(profileDialog);
             closeDialog(settingsDialog);
+            closeDialog(deleteAccountDialog);
         });
+    }
 
-        settingsButton.addEventListener('click', () => {
-            profileDialog.style.display = 'none';
-            openDialog(settingsDialog);
-        });
-
-        // Event listeners for the settings dialog buttons
+    if (deleteAccountButton) {
         deleteAccountButton.addEventListener('click', () => {
-            alert("Delete account clicked!");
+            closeDialog(settingsDialog);
+            openDialog(deleteAccountDialog);
+            overlay.style.display = 'block';
         });
+    }
 
-        logoutButton.addEventListener('click', () => {
-    fetch(logoutEndpoint, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            //'X-CSRF-Token': 'ваш_csrf_токен' // Если используете CSRF
-        },
-    })
-    .then(response => {
-        if (response.ok) {
-            // Удаляем cookie, устанавливая Expires в прошлое и сохраняя остальные параметры
-            document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=strict";
-            alert("Вы успешно вышли из аккаунта!")
-            window.location.href = "/";
-            
-        } else {
-            console.error('Ошибка при выходе:', response.status);
-            alert('Ошибка при выходе. Попробуйте еще раз.');
+    if (confirmDeleteAccountButton) {
+        confirmDeleteAccountButton.addEventListener('click', () => {
+            const password = deleteAccountPasswordInput.value;
+            deleteAccount(password);
+        });
+    }
+
+    if (cancelDeleteAccountButton) {
+        cancelDeleteAccountButton.addEventListener('click', () => {
+            closeDialog(deleteAccountDialog);
+            openDialog(settingsDialog);
+                 overlay.style.display = 'block';
+        });
+    }
+
+        if (logoutButton) {
+                logoutButton.addEventListener('click', function() {
+                const accessToken = localStorage.getItem('access_token');
+
+                fetch('/api/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`,
+                    },
+                })
+                .then(response => {
+                    if (response.ok) {
+                        localStorage.removeItem('access_token');
+                        alert("Вы успешно вышли из аккаунта!");
+                        window.location.href = "/";
+                    } else {
+                        console.error('Logout failed:', response.status);
+                        alert('Ошибка при выходе. Попробуйте еще раз.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Logout error:', error);
+                    alert('Ошибка сети при выходе. Попробуйте еще раз.');
+                });
+            });
         }
-    })
-    .catch(error => {
-        console.error('Ошибка сети:', error);
-        alert('Ошибка сети при выходе. Попробуйте еще раз.');
-    });
-});
+        };
     </script>
 </body>
 

@@ -7,37 +7,45 @@ import (
 
 type UserIDKey string
 
-const UserID UserIDKey = "id"
+const UserID UserIDKey = "user_id"
 
 func AuthorityMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("token")
+		sessionCookie, err := r.Cookie("session_id")
 		if err != nil {
-			http.Redirect(w, r, "/", http.StatusSeeOther)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
-		tokenString := cookie.Value
-		claims, err := Authenticate(tokenString)
-		if err != nil {
-			http.Redirect(w, r, "/", http.StatusSeeOther)
-		} else {
-			ctx := context.WithValue(r.Context(), UserID, claims["id"])
-			next.ServeHTTP(w, r.WithContext(ctx))
+
+		sessionID := sessionCookie.Value
+		if !IsValidSession(sessionID) {
+			DeleteSession(sessionID)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
 		}
+
+		session := sessions[sessionID]
+		ctx := context.WithValue(r.Context(), UserID, session.UserID)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
-func NonAuthorityMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("token")
-		if err == nil {
-			tokenString := cookie.Value
-			_, err := Authenticate(tokenString)
-			if err == nil {
-				http.Redirect(w, r, "/profile", http.StatusSeeOther)
-				return
-			}
 
+func NoAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionCookie, err := r.Cookie("session_id")
+
+		if err == nil {
+
+			sessionID := sessionCookie.Value
+			if IsValidSession(sessionID) {
+				http.Redirect(w, r, "/profile", http.StatusFound)
+
+				return
+			} else {
+				DeleteSession(sessionID)
+			}
 		}
+
 		next.ServeHTTP(w, r)
-	})
+	}
 }

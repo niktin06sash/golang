@@ -99,7 +99,6 @@
 </head>
 
 <body>
-
     <div class="container">
         <h1>Добро пожаловать</h1>
         <button class="auth-button">Авторизация</button>
@@ -204,6 +203,7 @@
         // Handling success
         console.log('Success:', data);
         alert("Авторизация Успешна!"); // Display the message from the server
+
         window.location.href = "/greeting"; 
       })
       .catch(error => {
