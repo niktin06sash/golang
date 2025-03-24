@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start Page</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 500px;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .auth-button,
+        .reg-button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 10;
+        }
+
+        .auth-dialog,
+        .reg-dialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 11;
+            display: none;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="email"],
+        input[type="password"],
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .close-button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+            float: right;
+            margin-top: -5px;
+        }
+
+        .submit-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Добро пожаловать</h1>
+        <button class="auth-button">Авторизация</button>
+        <button class="reg-button">Регистрация</button>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="auth-dialog" id="authDialog">
+        <button class="close-button">X</button>
+        <h2>Авторизация</h2>
+        <form id="authForm">
+            <label for="authEmail">Email:</label>
+            <input type="email" id="authEmail" name="email" required>
+
+            <label for="authPassword">Пароль:</label>
+            <input type="password" id="authPassword" name="password" required>
+
+            <button type="submit" class="submit-button">Войти</button>
+        </form>
+    </div>
+
+    <div class="reg-dialog" id="regDialog">
+        <button class="close-button">X</button>
+        <h2>Регистрация</h2>
+        <form id="regForm">
+            <label for="regName">Имя:</label>
+            <input type="text" id="regName" name="name" required>
+
+            <label for="regEmail">Email:</label>
+            <input type="email" id="regEmail" name="email" required>
+
+            <label for="regPassword">Пароль:</label>
+            <input type="password" id="regPassword" name="password" required>
+
+            <button type="submit" class="submit-button">Зарегистрироваться</button>
+        </form>
+    </div>
+
+    <script>
+      fetch('/api/startpage', { // или /login
+    method: "GET",
+})
+.then(response => {
+    console.log("Код состояния:", response.status); // Добавлено для отладки
+    if (response.status == 403) {
+        console.log("Перенаправление..."); // Добавлено для отладки
+        window.location.href = "/profile";
+        return;
+    } else {
+        console.log("Другой код состояния:", response.status); // Добавлено для отладки
+    }
+})
+.catch(error => {
+    console.error("Ошибка fetch:", error);
+    window.location.href = "/profile";
+});
+        const authButton = document.querySelector(".auth-button");
+        const regButton = document.querySelector(".reg-button");
+        const overlay = document.getElementById("overlay");
+        const authDialog = document.getElementById("authDialog");
+        const regDialog = document.getElementById("regDialog");
+
+        function openDialog(dialog) {
+            overlay.style.display = "block";
+            dialog.style.display = "block";
+        }
+
+        function closeDialog(dialog) {
+            overlay.style.display = "none";
+            dialog.style.display = "none";
+        }
+
+        authButton.addEventListener("click", function() {
+            openDialog(authDialog);
+        });
+
+        regButton.addEventListener("click", function() {
+            openDialog(regDialog);
+        });
+
+        document.querySelectorAll(".close-button").forEach(button => {
+            button.addEventListener("click", function() {
+                const dialog = this.closest(".auth-dialog") || this.closest(".reg-dialog");
+                closeDialog(dialog);
+            });
+        });
+
+        //Add event for the auth form
+        document.getElementById("authForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+
+            //Creates data object  for auth
+            const data = {
+                email: formData.get("email"),
+                password: formData.get("password")
+            };
+
+            fetch("api/auth", { //Make sure this endpoint is correct
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+        if (!response.ok) {
+          // HTTP status code is not in the 200-299 range (error case)
+          return response.json().then(err => {
+            // Parse the JSON error response from the server
+            throw err; // Re-throw the parsed error
+          });
+        }
+        return response.json(); // Parse the JSON success response
+      })
+      .then(data => {
+        // Handling success
+        console.log('Success:', data);
+        alert("Авторизация Успешна!"); // Display the message from the server
+
+        window.location.href = "/greeting"; 
+      })
+      .catch(error => {
+        // Handling errors
+        console.error('Error:', error);
+        if (error.errors) {
+          // Display validation errors (if they exist)
+          let errorMessage = "";
+          for (const key in error.errors) {
+            errorMessage += `${key}: ${error.errors[key]}\n`;
+          }
+          alert("Ошибка при авторизации:\n" + errorMessage);
+        } else {
+          // Display a generic error message
+          alert("Произошла ошибка при авторизации: " + (error.message || error));
+        }
+      });
+        });
+
+        //Add event for the regForm
+
+        document.getElementById("regForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+
+            //Creates data object  for reg
+
+            const data = {
+                name: formData.get("name"),
+                email: formData.get("email"),
+                password: formData.get("password")
+            };
+
+            fetch("api/reg", { //Make sure this endpoint is correct
+
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data) //Send the JSON datas
+
+                })
+                .then(response => {
+        if (!response.ok) {
+          // HTTP status code is not in the 200-299 range (error case)
+          return response.json().then(err => {
+            // Parse the JSON error response from the server
+            throw err; // Re-throw the parsed error
+          });
+        }
+        return response.json(); // Parse the JSON success response
+      })
+      .then(data => {
+        // Handling success
+        console.log('Success:', data);
+        alert("Регистрация Успешна!"); // Display the message from the server
+        window.location.href = "/greeting"; 
+      })
+      .catch(error => {
+        // Handling errors
+        console.error('Error:', error);
+        if (error.errors) {
+          // Display validation errors (if they exist)
+          let errorMessage = "";
+          for (const key in error.errors) {
+            errorMessage += `${key}: ${error.errors[key]}\n`;
+          }
+          alert("Ошибка при регистрации:\n" + errorMessage);
+        } else {
+          // Display a generic error message
+          alert("Произошла ошибка при регистрации: " + (error.message || error));
+        }
+      });
+        });
+    </script>
+</body>
+
+</html>

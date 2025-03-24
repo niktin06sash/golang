@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Greeting Page</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .greeting-container {
+            width: 300px;
+            margin: 100px auto; /* Увеличил margin-top для видимости */
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="greeting-container">
+    <h id="header-message"><b>Здравствуйте, </b> </h>
+    <p id="greeting-message">Загрузка...</p>
+    <p id="redirecting-message"></p>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const headerMessageElement = document.getElementById("header-message");
+        const greetingMessageElement = document.getElementById("greeting-message");
+        const redirectingMessageElement = document.getElementById("redirecting-message");
+
+        
+            fetch('/api/greeting', { // Защищенный endpoint
+                method: "GET",
+            })
+            .then(response => {
+                if (!response.ok) {
+                    console.error("API Error:", response.status);
+                    window.location.href = "/"; // Back To Login
+                    return new Promise(() => {}); // Prevent further execution
+                }
+                return response.json();
+            })
+            .then(data => {
+
+                headerMessageElement.innerHTML = `<b>Здравствуйте</b>, ${data.UserID}!`
+                const delay = 5000;
+
+                
+                redirectingMessageElement.textContent = `Перенаправление на страницу профиля через ${delay/1000} секунд...`;
+
+                function redirectToMain() {
+                    window.location.href = "/profile";
+                }
+
+                setTimeout(redirectToMain, delay);
+            })
+            .catch(error => {
+                console.error("API Error:", error);
+                window.location.href = "/";
+            });
+    });
+</script>
+</body>
